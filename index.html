@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>File Organizer System</title>
+ <style>
+   body {
+    font-family: Arial, sans-seriff;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+   }
+   #app {
+    padding: 20px;
+   }
+   h1 {
+    text-align: center;
+   }
+   #folders-container {
+     display: flex;
+     gap: 10px;
+     flex-wrap: wrap;
+     margin-bottom: 20px;
+   }
+   .folder {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+    }
+    .folder:hover {
+       background-color: #0056b3;
+    }
+    #file-actions {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+    }
+    #search-input {
+     flex: 1;
+     padding: 10px;
+     border: 1px solid #ddd;
+     border-radius: 5px;        
+    }
+    #sort-btn {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #files-container ul{
+        list-style: none;
+        padding: 0;
+    }
+    #files-container li {
+       padding: 10px;
+       border-bottom: 1px solid #ddd;
+       display: flex;
+       align-items: center;
+       gap: 10px;
+    }
+    #files-container img{
+        width: 30px;
+        height: 30px;
+    }
+    #bin-section {
+        margin-top: 20px;
+    }
+    #bin-section ul {
+            list-style: none;
+            padding: 0;
+    }
+    #bin-section li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+    }
+    #clear-bin-btn {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+ </style>
+</head>
+<body>
+   <div id="app">
+     <h1>File Organizer System</h1>
+     <div id="folders-container"></div>
+     <div id="file-action">
+        <input type="text" id="search-input" placeholder="Seach files...">
+        <button id="sort-btn">Sort: Ascending</button>
+     </div>
+     <div id="files-container"></div>
+     <div id="bin-section">
+        <h2>Bin</h2>
+        <ul id="bin"></ul>
+        <button id="clear-bin-btn">Clear Bin</button>
+     </div>
+    </div>
+    <script>
+
+        const files = [
+            'document1.txt', 'presentation1.pdf', 'song1.mp3', 'installer1.exe', 'archive1.rar',
+            'document2.txt', 'image1.jpg', 'graphic1.png', 'animation1.gif', 'compressed1.zip',
+            'document3.txt', 'presentation2.pdf', 'song2.mp3', 'installer2.exe', 'archive2.rar'
+        ];
+
+        const fileIcons = {
+            '.txt': 'https://via.placeholder.com/200?text=TXT',
+            '.pdf': 'https://via.placeholder.com/200?text=PDF',
+            '.mp3': 'https://via.placeholder.com/200?text=MP3',
+            '.exe': 'https://via.placeholder.com/200?text=EXE',
+            '.rar': 'https://via.placeholder.com/200?text=RAR',
+            '.docx': 'https://via.placeholder.com/200?text=DOCX',
+            '.jpg': 'https://via.placeholder.com/200?text=JPG',
+            '.png': 'https://via.placeholder.com/200?text=PNG',
+            '.gif': 'https://via.placeholder.com/200?text=GIF',
+            '.zip': 'https://via.placeholder.com/200?text=ZIP',
+        }; 
+        let folders = {}
+        let currentFolder = null;
+        let isAscending = true;
+        const bin = [];
+
+        files.forEach(file => {
+          const ext = file.match(/\.\w+$/)?.[0];
+          if(!ext) return;
+          if(!folders[ext]) folders[ext] = [];
+          folders[ext].push(file);
+        });
+
+       const folderContainer = document.getElementById('folders-container');
+       const filesContainer = document.getElementById('files-container');
+       const searchInput = document.getElementById('search-input');
+       const sortBtn = document.getElementById('sort-btn');
+       const binContainer = document.getElementById('bin');
+       const clearBinBtn = document.getElementById('clear-Bin-Btn');
+
+       const displayFolders = () => {
+         foldersContainer.innerHTML = '';
+         Object.keys(folders).forEach(ext => {
+           const folder = document.createElement('div');
+           folder.className = 'folder';
+           folder.className = ext.toUpperCase();
+           folder.addEventListener('click', () => displayFiles(ext));
+           foldersContainer.appendchild(folder);
+         });
+       };
+
+       const displayFiles = (ext) => {
+        currentFolder = ext;
+        const fileList = folders[ext];
+        filesContainer.innerHTML = `<ul>${fileList
+          .map(file => {
+            const icon = fileIcons[ext] || '';
+            const fileName = file.replace(ext, '');
+            return `
+              <li>
+                <img src="${icon}" alt="${ext}">
+                <span>${fileName}</span>
+                <button onclick="deleteFile('${file}')">Delete</button>
+              </li>`;
+          })
+          .join('')}</ul>`;
+        };
+
+        searchInput.addEventListener('input', (e) => {
+           const query = e.target.value.toLowerCase();
+           if (!currentFolder) return;
+           const fileList = folders[currentFolder].filter(file =>
+            file.toLowerCase().includes(query)
+           );
+          filesContainer.innerHTML = `<ul>${fileList
+            .map(file => {
+              const icon = fileIcons[currentFolder] || '';
+              const fileName = file.replace(currentFolder, '');
+              return `
+                <li>
+                  <img src="${icon}" alt="${currentFolder}">
+                  <span>${fileName}</span>
+                  
+                </li>`;
+            })
+            .join('')}</ul>`;
+          });
+
+          sortBtn.addEventListener('click', ()   => {
+            if (!currentFolder || !Array.isArray(folders[currentFolder])) {
+                console.error('Invalid folder or folder does not exist:', currentFolder);
+                return;
+            }
+            folders[currentFolder].sort((a, b))  => {
+              const nameA = a.toLowerCase();
+              const nameB = b.toLowerCase();
+              return isAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            });
+            isAscending = !isAscending;
+            sortBtn.textContent = `Sort: ${isAscending ? 'Ascending': 'Descending'}`;
+            displayFiles(currentFolder);
+        });
+           
+          
+             
+             
+            
+
+         const deleteFile = (file) => {
+           if (!currentFolder) return;
+           folders[currentFolder] = folders[currentFolder].filter(f => f !== file);
+           bin.push(file);
+           updateBin();
+           displayFiles(currentFolder);
+         };
+
+         const updateBin = () => {
+           binContainer.innerHTML = bin
+             .map(file => `<li>${file}</li>`)
+             .join('');
+         };
+         clearBinBtn.addEventListener('click', () => {
+           bin.length = 0;
+           updateBin();
+         });
+         displayFolders();
+    </script>
+</body>
+</html>
